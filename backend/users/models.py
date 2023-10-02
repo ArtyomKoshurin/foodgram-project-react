@@ -35,6 +35,7 @@ class CustomUser(AbstractUser):
 
 
 class Subscription(models.Model):
+    "Модель подписок пользователей на авторов рецептов."
     user = models.ForeignKey(
         CustomUser,
         null=True,
