@@ -11,7 +11,8 @@ from .models import CustomUser
 from .serializers import (
     UserRegistrationSerializer,
     UserInfoSerializer,
-    TokenSerializer
+    TokenSerializer,
+    NewPasswordSerializer
 )
 
 
@@ -51,6 +52,20 @@ class UserRegistrationViewSet(viewsets.ModelViewSet):
     def my_profile(self, request):
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False, url_path='set_password',
+            permission_classes=(permissions.IsAuthenticated,))
+    def change_password(self, request):
+        user = CustomUser.objects.get(username=request.user.username)
+        serializer = NewPasswordSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            if serializer.data['current_password'] == request.user.password:
+                user.password = serializer.data['new_password']
+                user.save(update_fields=["password"])
+                return Response('Пароль успешно изменен.',
+                                status=status.HTTP_204_NO_CONTENT)
+        return Response('Неверный текущий пароль.',
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomAuthToken(ObtainAuthToken):

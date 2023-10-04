@@ -65,3 +65,9 @@ class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('password', 'email')
+
+
+class NewPasswordSerializer(serializers.Serializer):
+    """Сериализатор для получения нового пароля."""
+    new_password = serializers.CharField(max_length=150, required=True)
+    current_password = serializers.CharField(max_length=150, required=True)
