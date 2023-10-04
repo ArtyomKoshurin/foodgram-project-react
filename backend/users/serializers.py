@@ -55,3 +55,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('id', 'email', 'username', 'first_name',
                   'last_name', 'is_subscribed')
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    """Сериализатор для получения токена."""
+    password = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(max_length=254, required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('password', 'email')
