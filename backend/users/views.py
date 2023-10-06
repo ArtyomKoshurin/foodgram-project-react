@@ -50,12 +50,14 @@ class UserRegistrationViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='me',
             permission_classes=(permissions.IsAuthenticated,))
     def my_profile(self, request):
+        """Метод, позволяющий посмотреть свой профиль."""
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False, url_path='set_password',
             permission_classes=(permissions.IsAuthenticated,))
     def change_password(self, request):
+        """Метод, позволяющий сменить пароль."""
         user = CustomUser.objects.get(username=request.user.username)
         serializer = NewPasswordSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -69,7 +71,7 @@ class UserRegistrationViewSet(viewsets.ModelViewSet):
 
 
 class CustomAuthToken(ObtainAuthToken):
-    """Вью-класс для получения токена по username-email."""
+    """Кастомный вью-класс для получения токена по username-email."""
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
