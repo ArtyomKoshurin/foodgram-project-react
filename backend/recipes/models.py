@@ -22,7 +22,6 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель ингредиентов."""
     name = models.CharField(max_length=124)
-    portion = models.IntegerField()
     measure_unit = models.CharField(max_length=10)
 
     def __str__(self):
@@ -48,7 +47,7 @@ class Recipe(models.Model):
         related_name='recipe_ingredients'
         )
     tag = models.ManyToManyField(Tag, related_name='recipe_tag')
-    cooking_time = models.IntegerField()
+    cooking_time = models.PositiveIntegerField()
 
     def __str__(self):
         return self.name
@@ -58,6 +57,7 @@ class IngredientsForRecipe(models.Model):
     """Вспомогательная модель для добавления ингредиентов в рецепт."""
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    portion = models.PositiveIntegerField()
 
     def __str__(self):
         return f'{self.recipe}: {self.ingredient}'

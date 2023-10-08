@@ -5,10 +5,10 @@ from .views import UserRegistrationViewSet
 
 app_name = 'users'
 
-router_api_v1 = DefaultRouter()
+router_users_v1 = DefaultRouter()
 
-router_api_v1.register('users', UserRegistrationViewSet, basename='users')
+router_users_v1.register('users', UserRegistrationViewSet, basename='users')
 
 urlpatterns = [
-    path('', include(router_api_v1.urls)),
+    path('', include(router_users_v1.urls)),
 ]
