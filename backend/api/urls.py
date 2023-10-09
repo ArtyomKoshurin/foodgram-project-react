@@ -7,6 +7,7 @@ app_name = 'api'
 
 urlpatterns = [
     path('', include('users.urls', namespace='users')),
+    path('', include('recipes.urls', namespace='recipes')),
     path('auth/token/login/', CustomAuthToken.as_view()),
     path('auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),

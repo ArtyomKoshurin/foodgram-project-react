@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Tag, Ingredient
@@ -14,7 +14,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Ingredient
+    permission_classes = (permissions.AllowAny,)
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('^name',)
