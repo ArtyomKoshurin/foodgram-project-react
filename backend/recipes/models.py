@@ -56,8 +56,15 @@ class Recipe(models.Model):
 
 class IngredientsForRecipe(models.Model):
     """Вспомогательная модель для добавления ингредиентов в рецепт."""
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(
+        Ingredient,
+        related_name='ingredient_for_recipe',
+        on_delete=models.CASCADE
+        )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='ingredient_for_recipe',
+        on_delete=models.CASCADE)
     portion = models.PositiveIntegerField()
 
     def __str__(self):

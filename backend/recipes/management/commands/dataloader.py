@@ -30,7 +30,6 @@ class Command(BaseCommand):
                         name=name,
                         measure_unit=measure_unit
                     )
-                print(name)
         self.stdout.write(self.style.SUCCESS('Successfully loaded data'))
 
     def handle(self, *args, **options):
