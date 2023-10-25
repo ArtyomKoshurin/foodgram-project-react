@@ -48,7 +48,7 @@ class Recipe(models.Model):
         )
     tag = models.ManyToManyField(Tag, related_name='recipe_tag')
     cooking_time = models.PositiveIntegerField()
-    is_favourite = models.BooleanField(default=False)
+    is_favourited = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

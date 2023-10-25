@@ -57,6 +57,14 @@ class UserInfoSerializer(serializers.ModelSerializer):
                   'last_name', 'is_subscribed')
 
 
+class UserShortInfoSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткого отображения пользователя на главной странице
+    рецептов."""
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'first_name', 'last_name')
+
+
 class TokenSerializer(serializers.ModelSerializer):
     """Сериализатор для получения токена."""
     password = serializers.CharField(max_length=150, required=True)

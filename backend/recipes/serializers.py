@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 
 from .models import Tag, Ingredient, IngredientsForRecipe, Recipe
-from users.serializers import UserInfoSerializer
+from users.serializers import UserInfoSerializer, UserShortInfoSerializer
 
 
 class Base64ImageField(serializers.ImageField):
@@ -22,6 +22,13 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
+
+
+class TagShortSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения тегов в рецептах на главной странице."""
+    class Meta:
+        model = Tag
+        fields = ('id', 'name')
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -74,7 +81,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tag', 'ingredients', 'cooking_time',
-                  'author', 'image', 'description', 'is_favourite')
+                  'author', 'image', 'description', 'is_favourited')
 
 
 class RecipeCreationSerializer(serializers.ModelSerializer):
@@ -159,3 +166,14 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         request = {'request': self.context.get('request')}
         recipe_for_view = RecipeGetSerializer(instance, context=request)
         return recipe_for_view.data
+
+
+class RecipeListSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения основной информации о рецепте
+    на главной странице."""
+    tag = TagShortSerializer(many=True)
+    author = UserShortInfoSerializer(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'image', 'name', 'tag', 'cooking_time', 'author')
