@@ -3,10 +3,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
+from .pagination import UsersPagination
 from .models import CustomUser
 from .serializers import (
     UserRegistrationSerializer,
@@ -16,11 +16,11 @@ from .serializers import (
 )
 
 
-class UserRegistrationViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для регистрации пользователя, просмотра списка пользователей
     и просмотра отдельного пользователя."""
     queryset = CustomUser.objects.all()
-    pagination_class = PageNumberPagination
+    pagination_class = UsersPagination
     permission_classes = (permissions.AllowAny,)
 
     def get_permissions(self):
