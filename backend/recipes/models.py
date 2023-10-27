@@ -48,7 +48,10 @@ class Recipe(models.Model):
         )
     tag = models.ManyToManyField(Tag, related_name='recipe_tag')
     cooking_time = models.PositiveIntegerField()
-    is_favourited = models.BooleanField(default=False)
+    is_favorited = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('-id',)
 
     def __str__(self):
         return self.name

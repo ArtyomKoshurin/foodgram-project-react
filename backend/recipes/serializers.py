@@ -68,7 +68,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
-    """Сериализатор для получения информации о рецепте/рецептах."""
+    """Сериализатор для получения информации о рецепте."""
     tag = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
     ingredients = IngredientForGettingRecipe(
@@ -81,7 +81,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tag', 'ingredients', 'cooking_time',
-                  'author', 'image', 'description', 'is_favourited')
+                  'author', 'image', 'description', 'is_favorited')
 
 
 class RecipeCreationSerializer(serializers.ModelSerializer):
