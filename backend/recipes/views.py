@@ -4,7 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from .models import Tag, Ingredient, Recipe
+from .models import Tag, Ingredient, Recipe, Favorites
 from .serializers import (
     TagSerializer,
     IngredientsSerializer,
@@ -38,12 +38,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'update' or self.action == 'destroy':
             permission_classes = [IsAdminAuthorOrReadOnly]
+        elif self.action == 'list' or self.action == 'retrieve':
+            permission_classes = [permissions.AllowAny]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'favorite':
             return RecipeListSerializer
         elif self.action == 'retrieve':
             return RecipeGetSerializer
@@ -53,7 +55,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(methods=['POST', 'DELETE'], detail=False,
-            url_path='favorite',
+            url_path=r'(?P<pk>\d+)/favorite',
             permission_classes=(permissions.IsAuthenticated,))
-    def favorite(self, request, pk):
-        pass
+    def favorite(self, request, **kwargs):
+        recipe = Recipe.objects.get(id=kwargs['pk'])
+        serializer = RecipeListSerializer(recipe)
+        if request.method == 'POST':
+            if Favorites.objects.filter(
+                    user=request.user, recipe=recipe).exists():
+                return Response('Этот рецепт уже в списке избранного.',
+                                status=status.HTTP_400_BAD_REQUEST)
+            Favorites.objects.create(user=request.user, recipe=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            favorite = Favorites.objects.get(
+                user=request.user, recipe=recipe)
+            favorite.delete()
+            return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)

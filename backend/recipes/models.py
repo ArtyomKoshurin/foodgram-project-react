@@ -72,3 +72,20 @@ class IngredientsForRecipe(models.Model):
 
     def __str__(self):
         return f'{self.recipe}: {self.ingredient}'
+
+
+class Favorites(models.Model):
+    """Модель для добавления рецепта в избранное."""
+    user = models.ForeignKey(
+        CustomUser,
+        related_name='favorite_recipe',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='favorite_recipe',
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f'Рецепт {self.recipe.name} в избранном у {self.user.username}'

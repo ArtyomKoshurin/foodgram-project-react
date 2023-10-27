@@ -3,7 +3,13 @@ import base64
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 
-from .models import Tag, Ingredient, IngredientsForRecipe, Recipe
+from .models import (
+    Tag,
+    Ingredient,
+    IngredientsForRecipe,
+    Recipe,
+    Favorites
+    )
 from users.serializers import UserInfoSerializer, UserShortInfoSerializer
 
 
@@ -77,11 +83,18 @@ class RecipeGetSerializer(serializers.ModelSerializer):
         read_only=True
     )
     author = UserInfoSerializer(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tag', 'ingredients', 'cooking_time',
                   'author', 'image', 'description', 'is_favorited')
+
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+        return Favorites.objects.filter(recipe=obj, user=request.user).exists()
 
 
 class RecipeCreationSerializer(serializers.ModelSerializer):
