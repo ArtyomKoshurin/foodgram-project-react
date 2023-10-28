@@ -5,13 +5,14 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
-from .pagination import UsersPagination
-from .models import CustomUser
+from .pagination import UsersPagination, RecipePagination
+from .models import CustomUser, Subscription
 from .serializers import (
     UserRegistrationSerializer,
     UserInfoSerializer,
     TokenSerializer,
-    NewPasswordSerializer
+    NewPasswordSerializer,
+    UserRecipesSerializer
 )
 
 
@@ -32,6 +33,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
             return UserInfoSerializer
+        elif self.action == 'subscribe' or self.action == 'subscriptions':
+            return UserRecipesSerializer
         return UserRegistrationSerializer
 
     def create(self, request):
@@ -67,6 +70,42 @@ class UserViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_204_NO_CONTENT)
         return Response('Неверный текущий пароль.',
                         status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['POST', 'DELETE'], detail=False,
+            url_path=r'(?P<pk>\d+)/subscribe',
+            permission_classes=(permissions.IsAuthenticated,))
+    def subscribe(self, request, **kwargs):
+        author = get_object_or_404(CustomUser, id=kwargs['pk'])
+        serializer = UserRecipesSerializer(author)
+        if request.method == 'POST':
+            if Subscription.objects.filter(
+                    user=request.user, author=author).exists():
+                return Response('Вы уже подписаны на этого пользователя.',
+                                status=status.HTTP_400_BAD_REQUEST)
+            elif request.user == author:
+                return Response('Нельзя подписаться на самого себя.',
+                                status=status.HTTP_400_BAD_REQUEST)
+            Subscription.objects.create(user=request.user, author=author)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            if not Subscription.objects.filter(
+                    user=request.user, author=author).exists():
+                return Response('Вы не подписаны на этого пользователя.',
+                                status=status.HTTP_400_BAD_REQUEST)
+            subscription = Subscription.objects.get(
+                user=request.user, author=author)
+            subscription.delete()
+            return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['GET'], detail=False,
+            url_path='subscriptions',
+            permission_classes=(permissions.IsAuthenticated,),
+            pagination_class=(RecipePagination,))
+    def subscriptions(self, request):
+        authors = CustomUser.objects.filter(
+            recipe_author__user=request.user).prefetch_related('recipes')
+        serializer = UserRecipesSerializer(authors, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CustomAuthToken(ObtainAuthToken):

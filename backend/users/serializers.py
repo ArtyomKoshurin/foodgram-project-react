@@ -2,7 +2,8 @@ import re
 
 from rest_framework import serializers
 
-from .models import CustomUser
+from .models import CustomUser, Subscription
+from recipes.serializers import RecipeListSerializer
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -49,12 +50,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserInfoSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра профилей пользователей."""
-    is_subscribed = serializers.BooleanField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = ('id', 'email', 'username', 'first_name',
                   'last_name', 'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+        return Subscription.objects.filter(
+            author=obj, user=request.user).exists()
 
 
 class UserShortInfoSerializer(serializers.ModelSerializer):
@@ -79,3 +87,27 @@ class NewPasswordSerializer(serializers.Serializer):
     """Сериализатор для получения нового пароля."""
     new_password = serializers.CharField(max_length=150, required=True)
     current_password = serializers.CharField(max_length=150, required=True)
+
+
+class UserRecipesSerializer(UserInfoSerializer):
+    """Сериализатор для просмотра профиля пользователя с его рецептами."""
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = UserInfoSerializer.Meta.fields + (
+            'recipes', 'recipes_count')
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipe_limit = request.query_params.get('recipes_limit')
+        queryset = obj.recipes.all()
+        if recipe_limit:
+            queryset = queryset[:int(recipe_limit)]
+
+        recipes_to_show = RecipeListSerializer(queryset, many=True)
+        return recipes_to_show.data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
