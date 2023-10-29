@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -12,11 +12,17 @@ from .serializers import (
     UserInfoSerializer,
     TokenSerializer,
     NewPasswordSerializer,
-    UserRecipesSerializer
+    UserRecipesSerializer,
 )
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class MixinsForUserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
+                           mixins.ListModelMixin, mixins.UpdateModelMixin,
+                           viewsets.GenericViewSet):
+    pass
+
+
+class UserViewSet(MixinsForUserViewSet):
     """Вьюсет для регистрации пользователя, просмотра списка пользователей
     и просмотра отдельного пользователя."""
     queryset = CustomUser.objects.all()
@@ -31,9 +37,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'retrieve':
+        if self.action == 'list':
             return UserInfoSerializer
-        elif self.action == 'subscribe' or self.action == 'subscriptions':
+        elif self.request.method == 'GET' or self.action in [
+            'subscribe',
+            'subscriptions'
+        ]:
             return UserRecipesSerializer
         return UserRegistrationSerializer
 
@@ -43,11 +52,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def retrieve(self, request, pk):
-        queryset = get_object_or_404(CustomUser, id=pk)
-        serializer = UserInfoSerializer(queryset)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='me',
             permission_classes=(permissions.IsAuthenticated,))
@@ -76,7 +80,6 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def subscribe(self, request, **kwargs):
         author = get_object_or_404(CustomUser, id=kwargs['pk'])
-        serializer = UserRecipesSerializer(author)
         if request.method == 'POST':
             if Subscription.objects.filter(
                     user=request.user, author=author).exists():
@@ -86,7 +89,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response('Нельзя подписаться на самого себя.',
                                 status=status.HTTP_400_BAD_REQUEST)
             Subscription.objects.create(user=request.user, author=author)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(data=self.get_serializer(author).data,
+                            status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             if not Subscription.objects.filter(
                     user=request.user, author=author).exists():
@@ -95,16 +99,25 @@ class UserViewSet(viewsets.ModelViewSet):
             subscription = Subscription.objects.get(
                 user=request.user, author=author)
             subscription.delete()
-            return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+            return Response(data=self.get_serializer(author).data,
+                            status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['GET'], detail=False,
             url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
-            pagination_class=(RecipePagination,))
+            pagination_class=RecipePagination)
     def subscriptions(self, request):
         authors = CustomUser.objects.filter(
             recipe_author__user=request.user).prefetch_related('recipes')
-        serializer = UserRecipesSerializer(authors, many=True)
+        page = self.paginate_queryset(authors)
+        if page:
+            serializer = UserRecipesSerializer(
+                page, many=True,
+                context={'request': request})
+
+            return self.get_paginated_response(serializer.data)
+        serializer = UserRecipesSerializer(authors, many=True,
+                                           context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

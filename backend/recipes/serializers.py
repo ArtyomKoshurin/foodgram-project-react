@@ -3,6 +3,7 @@ import base64
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 
+from users.models import CustomUser, Subscription
 from .models import (
     Tag,
     Ingredient,
@@ -10,7 +11,31 @@ from .models import (
     Recipe,
     Favorites
     )
-from users.serializers import UserInfoSerializer, UserShortInfoSerializer
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра профилей пользователей."""
+    # Вынесен из модуля users с целью предотвращения циклического импорта.
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        return Subscription.objects.filter(
+            author=obj, user=request.user).exists()
+
+
+class UserShortInfoSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткого отображения пользователя на главной странице
+    рецептов."""
+    # Вынесен из модуля users с целью предотвращения циклического импорта.
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'first_name', 'last_name')
 
 
 class Base64ImageField(serializers.ImageField):

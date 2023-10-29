@@ -50,7 +50,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserInfoSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра профилей пользователей."""
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CustomUser
@@ -59,8 +59,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
         return Subscription.objects.filter(
             author=obj, user=request.user).exists()
 
@@ -91,8 +89,8 @@ class NewPasswordSerializer(serializers.Serializer):
 
 class UserRecipesSerializer(UserInfoSerializer):
     """Сериализатор для просмотра профиля пользователя с его рецептами."""
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CustomUser
@@ -106,7 +104,8 @@ class UserRecipesSerializer(UserInfoSerializer):
         if recipe_limit:
             queryset = queryset[:int(recipe_limit)]
 
-        recipes_to_show = RecipeListSerializer(queryset, many=True)
+        recipes_to_show = RecipeListSerializer(
+            queryset, many=True)
         return recipes_to_show.data
 
     def get_recipes_count(self, obj):
