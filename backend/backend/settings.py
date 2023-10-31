@@ -115,6 +115,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+
     'PAGE_SIZE': 6,
 }
 
@@ -128,7 +132,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-Ru'
 
 TIME_ZONE = 'UTC'
 

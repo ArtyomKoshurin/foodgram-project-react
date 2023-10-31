@@ -18,10 +18,14 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'image',)
+    list_display = ('name', 'author', 'in_favorites',)
     search_fields = ('name',)
-    list_filter = ('name',)
+    list_filter = ('name', 'author',)
     empty_value_display = '-пусто-'
+
+    @admin.display(description='добавления в избранное')
+    def in_favorites(self, obj):
+        return obj.favorite_recipe.count()
 
 
 admin.site.register(Tag, TagAdmin)

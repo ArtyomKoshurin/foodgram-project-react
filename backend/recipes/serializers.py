@@ -9,7 +9,8 @@ from .models import (
     Ingredient,
     IngredientsForRecipe,
     Recipe,
-    Favorites
+    Favorites,
+    ShoppingCart
     )
 
 
@@ -25,6 +26,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
         return Subscription.objects.filter(
             author=obj, user=request.user).exists()
 
@@ -109,17 +112,28 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     )
     author = UserInfoSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tag', 'ingredients', 'cooking_time',
-                  'author', 'image', 'description', 'is_favorited')
+                  'author', 'image', 'description',
+                  'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
+
         return Favorites.objects.filter(recipe=obj, user=request.user).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+
+        return ShoppingCart.objects.filter(
+            recipe=obj, user=request.user).exists()
 
 
 class RecipeCreationSerializer(serializers.ModelSerializer):

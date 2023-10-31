@@ -49,6 +49,7 @@ class Recipe(models.Model):
     tag = models.ManyToManyField(Tag, related_name='recipe_tag')
     cooking_time = models.PositiveIntegerField()
     is_favorited = models.BooleanField(default=False)
+    is_in_shopping_cart = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('-id',)
@@ -89,3 +90,29 @@ class Favorites(models.Model):
 
     def __str__(self):
         return f'Рецепт {self.recipe.name} в избранном у {self.user.username}'
+
+
+class ShoppingCart(models.Model):
+    """Модель для списка покупок."""
+    user = models.ForeignKey(
+        CustomUser,
+        related_name='shopping_cart',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='shopping_cart',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_cart'
+            )
+        ]
+
+    def __str__(self):
+        return (f'Рецепт {self.recipe.name} в списке покупок'
+                f'у {self.user.username}')
