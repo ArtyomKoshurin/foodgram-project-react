@@ -14,7 +14,7 @@ from .serializers import (
     RecipeGetSerializer
 )
 from .permissions import IsAdminAuthorOrReadOnly
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -36,6 +36,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     создания рецепта"""
     queryset = Recipe.objects.all()
     pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_permissions(self):
         if self.action == 'update' or self.action == 'destroy':
