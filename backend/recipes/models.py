@@ -46,7 +46,7 @@ class Recipe(models.Model):
         through='IngredientsForRecipe',
         related_name='recipe_ingredients'
         )
-    tag = models.ManyToManyField(Tag, related_name='recipe_tag')
+    tags = models.ManyToManyField(Tag, related_name='recipe_tag')
     cooking_time = models.PositiveIntegerField()
     is_favorited = models.BooleanField(default=False)
     is_in_shopping_cart = models.BooleanField(default=False)

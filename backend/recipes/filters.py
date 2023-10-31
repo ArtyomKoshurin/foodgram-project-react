@@ -18,22 +18,22 @@ class RecipeFilter(rest_framework.FilterSet):
         field_name='author',
         lookup_expr='exact'
         )
-    tag = rest_framework.ModelMultipleChoiceFilter(
-        field_name='tag__slug',
+    tags = rest_framework.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all()
         )
-    is_favorited = rest_framework.BooleanFilter(
+    is_favorited = rest_framework.NumberFilter(
         method='filter_is_favorited'
         )
-    is_in_shopping_cart = rest_framework.BooleanFilter(
+    is_in_shopping_cart = rest_framework.NumberFilter(
         method='filter_is_in_shopping_cart'
         )
 
     def filter_is_favorited(self, queryset, name, value):
         if self.request.user.is_anonymous:
             return Recipe.objects.none()
-        if value:
+        if bool(value):
             return Recipe.objects.filter(
                 favorite_recipe__user=self.request.user)
         return queryset
@@ -41,11 +41,11 @@ class RecipeFilter(rest_framework.FilterSet):
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if self.request.user.is_anonymous:
             return Recipe.objects.none()
-        if value:
+        if bool(value):
             return Recipe.objects.filter(
                 shopping_cart__user=self.request.user)
         return queryset
 
     class Meta:
         model = Recipe
-        fields = ['author', 'tag', 'is_favorited', 'is_in_shopping_cart']
+        fields = ['author', 'tags', 'is_favorited', 'is_in_shopping_cart']

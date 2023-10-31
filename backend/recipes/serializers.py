@@ -103,7 +103,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для получения информации о рецепте."""
-    tag = serializers.PrimaryKeyRelatedField(
+    tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
     ingredients = IngredientForGettingRecipe(
         source='ingredient_for_recipe',
@@ -116,7 +116,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'tag', 'ingredients', 'cooking_time',
+        fields = ('id', 'name', 'tags', 'ingredients', 'cooking_time',
                   'author', 'image', 'description',
                   'is_favorited', 'is_in_shopping_cart')
 
@@ -141,7 +141,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
     cooking_time = serializers.IntegerField(required=True)
-    tag = serializers.PrimaryKeyRelatedField(
+    tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
     ingredients = IngredientForRecipeSerializer(
         source='ingredient_for_recipe',
@@ -152,8 +152,8 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'author', 'name', 'tag', 'ingredients', 'cooking_time',
-                  'description', 'image')
+        fields = ('id', 'author', 'name', 'tags', 'ingredients',
+                  'cooking_time', 'description', 'image')
 
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие
@@ -163,7 +163,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Нужно добавить ингредиенты в рецепт."
             )
-        tags = self.initial_data.get('tag')
+        tags = self.initial_data.get('tags')
         if not tags:
             raise serializers.ValidationError(
                 "Необходимо указать хотя бы один тег."
@@ -177,9 +177,9 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredient_for_recipe')
-        tags = validated_data.pop('tag')
+        tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        recipe.tag.set(tags)
+        recipe.tags.set(tags)
         for ingredient in ingredients:
             IngredientsForRecipe.objects.create(
                 ingredient_id=ingredient.get('id'),
@@ -200,9 +200,9 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             )
         instance.image = validated_data.get('image', instance.image)
         ingredients = validated_data.pop('ingredient_for_recipe')
-        tags = validated_data.pop('tag')
-        instance.tag.clear()
-        instance.tag.set(tags)
+        tags = validated_data.pop('tags')
+        instance.tags.clear()
+        instance.tags.set(tags)
         instance.ingredients.clear()
         recipe = instance
         for ingredient in ingredients:
@@ -223,9 +223,9 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
 class RecipeListSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения основной информации о рецепте
     на главной странице."""
-    tag = TagShortSerializer(many=True)
+    tags = TagShortSerializer(many=True)
     author = UserShortInfoSerializer(read_only=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'image', 'name', 'tag', 'cooking_time', 'author')
+        fields = ('id', 'image', 'name', 'tags', 'cooking_time', 'author')
