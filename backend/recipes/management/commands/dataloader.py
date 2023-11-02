@@ -21,6 +21,7 @@ class Command(BaseCommand):
             ) as file:
                 reader = csv.DictReader(file)
                 id = 0
+
                 for data in reader:
                     id = id + 1
                     name = data['name']
@@ -30,6 +31,7 @@ class Command(BaseCommand):
                         name=name,
                         measurement_unit=measurement_unit
                     )
+
         self.stdout.write(self.style.SUCCESS('Successfully loaded data'))
 
     def handle(self, *args, **options):

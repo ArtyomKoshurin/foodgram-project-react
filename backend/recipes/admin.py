@@ -23,7 +23,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author',)
     empty_value_display = '-пусто-'
 
-    @admin.display(description='добавления в избранное')
+    @admin.display(description='Добавления в избранное')
     def in_favorites(self, obj):
         return obj.favorite_recipe.count()
 

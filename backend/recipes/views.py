@@ -68,6 +68,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, **kwargs):
         recipe = Recipe.objects.get(id=kwargs['pk'])
         serializer = RecipeListSerializer(recipe)
+
         if request.method == 'POST':
             if Favorites.objects.filter(
                     user=request.user, recipe=recipe).exists():
@@ -75,6 +76,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
             Favorites.objects.create(user=request.user, recipe=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             if not Favorites.objects.filter(
                     user=request.user, recipe=recipe).exists():
@@ -90,6 +92,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def shopping_cart(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+
         if request.method == 'POST':
             if ShoppingCart.objects.filter(
                     user=request.user, recipe=recipe).exists():
@@ -98,6 +101,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ShoppingCart.objects.create(user=request.user, recipe=recipe)
             return Response(data=self.get_serializer(recipe).data,
                             status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             if not ShoppingCart.objects.filter(
                     user=request.user, recipe=recipe).exists():
@@ -130,7 +134,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe_list[name] = recipe_list.get(name, 0) + portion
 
         shopping_cart = 'Список покупок:\n'
-
         for key, value in recipe_list.items():
             shopping_cart += f'{key}{value}\n'
 

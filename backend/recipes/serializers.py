@@ -163,11 +163,13 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Нужно добавить ингредиенты в рецепт."
             )
+
         tags = self.initial_data.get('tags')
         if not tags:
             raise serializers.ValidationError(
                 "Необходимо указать хотя бы один тег."
             )
+
         image = self.initial_data.get('image')
         if not image:
             raise serializers.ValidationError(
@@ -180,12 +182,14 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
+
         for ingredient in ingredients:
             IngredientsForRecipe.objects.create(
                 ingredient_id=ingredient.get('id'),
                 recipe=recipe,
                 portion=ingredient.get('portion')
             )
+
         return recipe
 
     def update(self, instance, validated_data):
@@ -205,6 +209,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         instance.tags.set(tags)
         instance.ingredients.clear()
         recipe = instance
+
         for ingredient in ingredients:
             IngredientsForRecipe.objects.create(
                 ingredient_id=ingredient.get('id'),
@@ -212,6 +217,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
                 portion=ingredient.get('portion')
             )
         instance.save()
+
         return instance
 
     def to_representation(self, instance):

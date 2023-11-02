@@ -48,9 +48,11 @@ class UserViewSet(MixinsForUserViewSet):
 
     def create(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='me',
@@ -66,12 +68,14 @@ class UserViewSet(MixinsForUserViewSet):
         """Метод, позволяющий сменить пароль."""
         user = CustomUser.objects.get(username=request.user.username)
         serializer = NewPasswordSerializer(data=request.data)
+
         if serializer.is_valid(raise_exception=True):
             if serializer.data['current_password'] == request.user.password:
                 user.password = serializer.data['new_password']
                 user.save(update_fields=["password"])
                 return Response('Пароль успешно изменен.',
                                 status=status.HTTP_204_NO_CONTENT)
+
         return Response('Неверный текущий пароль.',
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -80,6 +84,7 @@ class UserViewSet(MixinsForUserViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def subscribe(self, request, **kwargs):
         author = get_object_or_404(CustomUser, id=kwargs['pk'])
+
         if request.method == 'POST':
             if Subscription.objects.filter(
                     user=request.user, author=author).exists():
@@ -91,6 +96,7 @@ class UserViewSet(MixinsForUserViewSet):
             Subscription.objects.create(user=request.user, author=author)
             return Response(data=self.get_serializer(author).data,
                             status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             if not Subscription.objects.filter(
                     user=request.user, author=author).exists():
@@ -110,6 +116,7 @@ class UserViewSet(MixinsForUserViewSet):
         authors = CustomUser.objects.filter(
             recipe_author__user=request.user).prefetch_related('recipes')
         page = self.paginate_queryset(authors)
+
         if page:
             serializer = UserRecipesSerializer(
                 page, many=True,
@@ -118,6 +125,7 @@ class UserViewSet(MixinsForUserViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = UserRecipesSerializer(authors, many=True,
                                            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -128,6 +136,7 @@ class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = TokenSerializer(data=request.data,
                                      context={'request': request})
+
         if serializer.is_valid(raise_exception=True):
             user = get_object_or_404(
                 CustomUser,
@@ -137,5 +146,6 @@ class CustomAuthToken(ObtainAuthToken):
             return Response({
                 'auth_token': token.key,
             })
+
         return Response('Неверный пароль или email.',
                         status=status.HTTP_400_BAD_REQUEST)
