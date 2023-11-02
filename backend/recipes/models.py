@@ -22,7 +22,7 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель ингредиентов."""
     name = models.CharField(max_length=124)
-    measure_unit = models.CharField(max_length=10)
+    measurement_unit = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name

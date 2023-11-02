@@ -1,4 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, permissions
 from rest_framework.pagination import PageNumberPagination
@@ -42,7 +44,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'update' or self.action == 'destroy':
             permission_classes = [IsAdminAuthorOrReadOnly]
-        elif self.action == 'list' or self.request.method == 'GET':
+        elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
         else:
             permission_classes = [permissions.IsAuthenticated]
@@ -51,8 +53,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['list', 'favorite', 'shopping_cart']:
             return RecipeListSerializer
-        elif self.request.method == 'GET':
+        elif self.action == 'retrieve':
             return RecipeGetSerializer
+        elif self.action == 'download_shopping_cart':
+            return None
         return RecipeCreationSerializer
 
     def perform_create(self, serializer):
@@ -105,3 +109,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_cart.delete()
             return Response(data=self.get_serializer(recipe).data,
                             status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['GET'], detail=False,
+            url_path='download_shopping_cart',
+            permission_classes=(permissions.IsAuthenticated,))
+    def download_shopping_cart(self, request, **kwargs):
+        recipes = Recipe.objects.filter(shopping_cart__user=self.request.user)
+        recipe_list = {}
+
+        for recipe in recipes:
+            ingredients = recipe.ingredients.values(
+                'name',
+                'measurement_unit',
+                portion=F('ingredient_for_recipe__portion')
+            )
+            for ingredient in ingredients:
+                name = (f"{ingredient['name']}, "
+                        f"({ingredient['measurement_unit']}): ")
+                portion = ingredient['portion']
+                recipe_list[name] = recipe_list.get(name, 0) + portion
+
+        shopping_cart = 'Список покупок:\n'
+
+        for key, value in recipe_list.items():
+            shopping_cart += f'{key}{value}\n'
+
+        response = HttpResponse(shopping_cart, content_type='text/plain')
+        response[
+            'Content-Disposition'
+            ] = 'attachment; filename=Shopping_cart.txt'
+        return response

@@ -24,11 +24,11 @@ class Command(BaseCommand):
                 for data in reader:
                     id = id + 1
                     name = data['name']
-                    measure_unit = data['measurement_unit']
+                    measurement_unit = data['measurement_unit']
                     model.objects.get_or_create(
                         id=id,
                         name=name,
-                        measure_unit=measure_unit
+                        measurement_unit=measurement_unit
                     )
         self.stdout.write(self.style.SUCCESS('Successfully loaded data'))
 
