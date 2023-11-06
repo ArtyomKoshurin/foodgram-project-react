@@ -42,7 +42,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_permissions(self):
-        if self.action == 'update' or self.action == 'destroy':
+        if self.request.method == 'PATCH' or self.action == 'destroy':
             permission_classes = [IsAdminAuthorOrReadOnly]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]

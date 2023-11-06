@@ -59,7 +59,8 @@ class UserViewSet(MixinsForUserViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def my_profile(self, request):
         """Метод, позволяющий посмотреть свой профиль."""
-        serializer = UserInfoSerializer(request.user)
+        serializer = UserInfoSerializer(request.user,
+                                        context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False, url_path='set_password',

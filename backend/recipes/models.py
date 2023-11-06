@@ -40,7 +40,7 @@ class Recipe(models.Model):
         upload_to='recipes/images/',
         default=None
     )
-    description = models.TextField()
+    text = models.TextField()
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientsForRecipe',

@@ -117,7 +117,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tags', 'ingredients', 'cooking_time',
-                  'author', 'image', 'description',
+                  'author', 'image', 'text',
                   'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
@@ -139,7 +139,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 class RecipeCreationSerializer(serializers.ModelSerializer):
     """Сериализатор для создания рецепта"""
     name = serializers.CharField(required=True)
-    description = serializers.CharField(required=True)
+    text = serializers.CharField(required=True)
     cooking_time = serializers.IntegerField(required=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
@@ -153,7 +153,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'author', 'name', 'tags', 'ingredients',
-                  'cooking_time', 'description', 'image')
+                  'cooking_time', 'text', 'image')
 
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие
@@ -198,9 +198,9 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             'cooking_time',
             instance.cooking_time
             )
-        instance.description = validated_data.get(
-            'description',
-            instance.description
+        instance.text = validated_data.get(
+            'text',
+            instance.text
             )
         instance.image = validated_data.get('image', instance.image)
         ingredients = validated_data.pop('ingredient_for_recipe')
