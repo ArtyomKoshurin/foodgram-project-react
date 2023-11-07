@@ -45,7 +45,7 @@ class Recipe(models.Model):
         Ingredient,
         through='IngredientsForRecipe',
         related_name='recipe_ingredients'
-        )
+    )
     tags = models.ManyToManyField(Tag, related_name='recipe_tag')
     cooking_time = models.PositiveIntegerField()
     is_favorited = models.BooleanField(default=False)
@@ -64,7 +64,7 @@ class IngredientsForRecipe(models.Model):
         Ingredient,
         related_name='ingredient_for_recipe',
         on_delete=models.CASCADE
-        )
+    )
     recipe = models.ForeignKey(
         Recipe,
         related_name='ingredient_for_recipe',

@@ -18,18 +18,18 @@ class RecipeFilter(rest_framework.FilterSet):
     author = rest_framework.NumberFilter(
         field_name='author',
         lookup_expr='exact'
-        )
+    )
     tags = rest_framework.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all()
-        )
+    )
     is_favorited = rest_framework.NumberFilter(
         method='filter_is_favorited'
-        )
+    )
     is_in_shopping_cart = rest_framework.NumberFilter(
         method='filter_is_in_shopping_cart'
-        )
+    )
 
     def filter_is_favorited(self, queryset, name, value):
         if self.request.user.is_anonymous:

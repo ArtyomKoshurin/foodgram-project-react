@@ -144,7 +144,7 @@ class CustomAuthToken(ObtainAuthToken):
             user = get_object_or_404(
                 CustomUser,
                 email=serializer.data.get('email')
-                )
+            )
             token, created = Token.objects.get_or_create(user=user)
             return Response({
                 'auth_token': token.key,

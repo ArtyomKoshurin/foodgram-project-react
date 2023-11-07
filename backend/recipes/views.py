@@ -6,7 +6,6 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 
 from .models import Tag, Ingredient, Recipe, Favorites, ShoppingCart
 from .serializers import (
@@ -146,5 +145,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response = HttpResponse(shopping_cart, content_type='text/plain')
         response[
             'Content-Disposition'
-            ] = 'attachment; filename=Shopping_cart.txt'
+        ] = 'attachment; filename=Shopping_cart.txt'
         return response

@@ -11,7 +11,7 @@ from .models import (
     Recipe,
     Favorites,
     ShoppingCart
-    )
+)
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -71,7 +71,7 @@ class IngredientForGettingRecipe(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient.id',
         queryset=Ingredient.objects.all()
-        )
+    )
     name = serializers.CharField(
         source='ingredient.name',
         read_only=True
@@ -190,11 +190,11 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         instance.cooking_time = validated_data.get(
             'cooking_time',
             instance.cooking_time
-            )
+        )
         instance.text = validated_data.get(
             'text',
             instance.text
-            )
+        )
         instance.image = validated_data.get('image', instance.image)
         ingredients = validated_data.pop('ingredient_for_recipe')
         tags = validated_data.pop('tags')
@@ -230,7 +230,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'image', 'name', 'tags', 'cooking_time', 'author',
                   'is_favorited', 'is_in_shopping_cart')
-    
+
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request.user.is_anonymous:
