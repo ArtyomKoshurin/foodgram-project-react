@@ -9,6 +9,9 @@ DEBUG = os.getenv('DEBUG', default=False)
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
 
+CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS: list[str] = ["https://myfoodgramm.hopto.org", "http://158.160.23.185", "https://*.hopto.org"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
