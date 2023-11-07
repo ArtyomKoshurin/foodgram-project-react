@@ -3,11 +3,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'h^o(*ri$_i*q3ytfl=+mnm3-202+0&+6g)arzo1w04j1jz$rfc'
+SECRET_KEY = os.getenv('SECRET_KEY', default='random_key')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
 
 
 INSTALLED_APPS = [

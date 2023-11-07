@@ -85,6 +85,8 @@ class UserViewSet(MixinsForUserViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def subscribe(self, request, **kwargs):
         author = get_object_or_404(CustomUser, id=kwargs['pk'])
+        serializer = UserRecipesSerializer(author,
+                                           context={'request': request})
 
         if request.method == 'POST':
             if Subscription.objects.filter(
@@ -95,7 +97,7 @@ class UserViewSet(MixinsForUserViewSet):
                 return Response('Нельзя подписаться на самого себя.',
                                 status=status.HTTP_400_BAD_REQUEST)
             Subscription.objects.create(user=request.user, author=author)
-            return Response(data=self.get_serializer(author).data,
+            return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
@@ -106,7 +108,7 @@ class UserViewSet(MixinsForUserViewSet):
             subscription = Subscription.objects.get(
                 user=request.user, author=author)
             subscription.delete()
-            return Response(data=self.get_serializer(author).data,
+            return Response(serializer.data,
                             status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['GET'], detail=False,

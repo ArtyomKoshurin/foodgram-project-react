@@ -59,13 +59,6 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'color', 'slug')
 
 
-class TagShortSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения тегов в рецептах на главной странице."""
-    class Meta:
-        model = Tag
-        fields = ('id', 'name')
-
-
 class IngredientsSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов."""
     class Meta:
@@ -104,7 +97,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для получения информации о рецепте."""
-    tags = TagShortSerializer(many=True)
+    tags = TagSerializer(many=True)
     ingredients = IngredientForGettingRecipe(
         source='ingredient_for_recipe',
         many=True,
@@ -228,7 +221,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
 class RecipeListSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения основной информации о рецепте
     на главной странице."""
-    tags = TagShortSerializer(many=True)
+    tags = TagSerializer(many=True)
     author = UserShortInfoSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -252,3 +245,14 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
         return ShoppingCart.objects.filter(
             recipe=obj, user=request.user).exists()
+
+
+class RecipeContextSerializer(serializers.ModelSerializer):
+    "Сериализатор для отображения профиля рецепта в профиле авторов."
+
+    class Meta:
+        model = Recipe
+        fields = ('id',
+                  'name',
+                  'image',
+                  'cooking_time')

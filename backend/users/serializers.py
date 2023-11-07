@@ -3,7 +3,9 @@ import re
 from rest_framework import serializers
 
 from .models import CustomUser, Subscription
-from recipes.serializers import RecipeListSerializer
+from recipes.serializers import RecipeContextSerializer
+
+from djoser.serializers import UserSerializer
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -90,26 +92,25 @@ class NewPasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(max_length=150, required=True)
 
 
-class UserRecipesSerializer(UserInfoSerializer):
+class UserRecipesSerializer(UserSerializer):
     """Сериализатор для просмотра профиля пользователя с его рецептами."""
-    recipes = serializers.SerializerMethodField(read_only=True)
-    recipes_count = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = RecipeContextSerializer(many=True)
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = UserInfoSerializer.Meta.fields + (
-            'recipes', 'recipes_count')
-
-    def get_recipes(self, obj):
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes',
+                  'recipes_count')
+    
+    def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        recipe_limit = request.query_params.get('recipes_limit')
-        queryset = obj.recipes.all()
-        if recipe_limit:
-            queryset = queryset[:int(recipe_limit)]
+        if request.user.is_anonymous:
+            return False
 
-        recipes_to_show = RecipeListSerializer(
-            queryset, many=True)
-        return recipes_to_show.data
+        return Subscription.objects.filter(
+            author=obj, user=request.user).exists()
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
