@@ -89,11 +89,11 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/col
 10. Запустите проект по адресу https://myfoodgramm.hopto.org/
 
 # Примеры запросов к сервису:
-GET-запрос к https://myfoodgramm.hopto.org/recipes/ - страница всех рецептов
-POST-запрос к https://myfoodgramm.hopto.org/recipes/ - создание рецепта
-GET-запрос к https://myfoodgramm.hopto.org/recipes/1/ - страница конкретного рецепта
-GET-запрос к https://myfoodgramm.hopto.org/recipes/?is_favorited=1/ - избранные рецепты
-GET-запрос к https://myfoodgramm.hopto.org/users/1/ - профиль пользователя (автора)
+1. GET-запрос к https://myfoodgramm.hopto.org/recipes/ - страница всех рецептов
+2. POST-запрос к https://myfoodgramm.hopto.org/recipes/ - создание рецепта
+3. GET-запрос к https://myfoodgramm.hopto.org/recipes/1/ - страница конкретного рецепта
+4. GET-запрос к https://myfoodgramm.hopto.org/recipes/?is_favorited=1/ - избранные рецепты
+5. GET-запрос к https://myfoodgramm.hopto.org/users/1/ - профиль пользователя (автора)
 
 ## *Технологии*
 Python 3.9.10
