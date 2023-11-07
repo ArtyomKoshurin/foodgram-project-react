@@ -95,10 +95,10 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/col
 4. GET-запрос к https://myfoodgramm.hopto.org/recipes/?is_favorited=1/ - избранные рецепты
 5. GET-запрос к https://myfoodgramm.hopto.org/users/1/ - профиль пользователя (автора)
 
-## *Технологии*
+# Технологии
 Python 3.9.10
 Django 2.2.19
 Docker 24.0.5
 
-# *Автор*:
+# Автор:
 Кошурин Артём
