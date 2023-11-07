@@ -69,7 +69,7 @@ class IngredientsForRecipe(models.Model):
         Recipe,
         related_name='ingredient_for_recipe',
         on_delete=models.CASCADE)
-    portion = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField()
 
     def __str__(self):
         return f'{self.recipe}: {self.ingredient}'

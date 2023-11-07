@@ -6,6 +6,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 
 from .models import Tag, Ingredient, Recipe, Favorites, ShoppingCart
 from .serializers import (
@@ -23,14 +24,18 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для просмотра тегов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
+    permission_classes = (permissions.AllowAny,)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для просмотра ингредиентов."""
     queryset = Ingredient.objects.all()
+    permission_classes = (permissions.AllowAny,)
     serializer_class = IngredientsSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -67,7 +72,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, **kwargs):
         recipe = Recipe.objects.get(id=kwargs['pk'])
-        serializer = RecipeListSerializer(recipe)
 
         if request.method == 'POST':
             if Favorites.objects.filter(
@@ -75,7 +79,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response('Этот рецепт уже в списке избранного.',
                                 status=status.HTTP_400_BAD_REQUEST)
             Favorites.objects.create(user=request.user, recipe=recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(data=self.get_serializer(recipe).data,
+                            status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
             if not Favorites.objects.filter(
@@ -85,7 +90,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             favorite = Favorites.objects.get(
                 user=request.user, recipe=recipe)
             favorite.delete()
-            return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+            return Response(data=self.get_serializer(recipe).data,
+                            status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['POST', 'DELETE'], detail=False,
             url_path=r'(?P<pk>\d+)/shopping_cart',
@@ -125,13 +131,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ingredients = recipe.ingredients.values(
                 'name',
                 'measurement_unit',
-                portion=F('ingredient_for_recipe__portion')
+                amount=F('ingredient_for_recipe__amount')
             )
             for ingredient in ingredients:
                 name = (f"{ingredient['name']}, "
                         f"({ingredient['measurement_unit']}): ")
-                portion = ingredient['portion']
-                recipe_list[name] = recipe_list.get(name, 0) + portion
+                amount = ingredient['amount']
+                recipe_list[name] = recipe_list.get(name, 0) + amount
 
         shopping_cart = 'Список покупок:\n'
         for key, value in recipe_list.items():

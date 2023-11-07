@@ -28,6 +28,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
+
         return Subscription.objects.filter(
             author=obj, user=request.user).exists()
 
@@ -89,7 +90,7 @@ class IngredientForGettingRecipe(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientsForRecipe
-        fields = ('id', 'name', 'measurement_unit', 'portion')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class IngredientForRecipeSerializer(serializers.ModelSerializer):
@@ -98,13 +99,12 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientsForRecipe
-        fields = ('id', 'portion')
+        fields = ('id', 'amount')
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для получения информации о рецепте."""
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True)
+    tags = TagShortSerializer(many=True)
     ingredients = IngredientForGettingRecipe(
         source='ingredient_for_recipe',
         many=True,
@@ -187,7 +187,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             IngredientsForRecipe.objects.create(
                 ingredient_id=ingredient.get('id'),
                 recipe=recipe,
-                portion=ingredient.get('portion')
+                amount=ingredient.get('amount')
             )
 
         return recipe
@@ -208,13 +208,12 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         instance.tags.set(tags)
         instance.ingredients.clear()
-        recipe = instance
 
         for ingredient in ingredients:
             IngredientsForRecipe.objects.create(
                 ingredient_id=ingredient.get('id'),
-                recipe=recipe,
-                portion=ingredient.get('portion')
+                recipe=instance,
+                amount=ingredient.get('amount')
             )
         instance.save()
 
@@ -231,7 +230,25 @@ class RecipeListSerializer(serializers.ModelSerializer):
     на главной странице."""
     tags = TagShortSerializer(many=True)
     author = UserShortInfoSerializer(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'image', 'name', 'tags', 'cooking_time', 'author')
+        fields = ('id', 'image', 'name', 'tags', 'cooking_time', 'author',
+                  'is_favorited', 'is_in_shopping_cart')
+    
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+
+        return Favorites.objects.filter(recipe=obj, user=request.user).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+
+        return ShoppingCart.objects.filter(
+            recipe=obj, user=request.user).exists()
