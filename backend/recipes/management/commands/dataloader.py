@@ -20,16 +20,11 @@ class Command(BaseCommand):
                     encoding='utf-8',
             ) as file:
                 reader = csv.DictReader(file)
-                id = 0
 
                 for data in reader:
-                    id = id + 1
-                    name = data['name']
-                    measurement_unit = data['measurement_unit']
                     model.objects.get_or_create(
-                        id=id,
-                        name=name,
-                        measurement_unit=measurement_unit
+                        name=data['name'],
+                        measurement_unit=data['measurement_unit']
                     )
 
         self.stdout.write(self.style.SUCCESS('Successfully loaded data'))

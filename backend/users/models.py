@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
+from django.db.models import F, Q
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     """Кастомная модель пользователя."""
     email = models.EmailField(
         _('email address'),
@@ -20,7 +21,6 @@ class CustomUser(AbstractUser):
         max_length=150
     )
     password = models.CharField(max_length=150)
-    is_subscribed = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -37,13 +37,13 @@ class CustomUser(AbstractUser):
 class Subscription(models.Model):
     "Модель подписок пользователей на авторов рецептов."
     user = models.ForeignKey(
-        CustomUser,
+        User,
         null=True,
         on_delete=models.CASCADE,
         related_name='following_user',
     )
     author = models.ForeignKey(
-        CustomUser,
+        User,
         null=True,
         on_delete=models.CASCADE,
         related_name='recipe_author'
@@ -51,10 +51,10 @@ class Subscription(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='unique_subscription'
-            )
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_subscription'),
+            models.CheckConstraint(check=~Q(user=F('author')),
+                                   name='no_self_subscription')
         ]
 
     def __str__(self):

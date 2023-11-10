@@ -25,26 +25,18 @@ class RecipeFilter(rest_framework.FilterSet):
         queryset=Tag.objects.all()
     )
     is_favorited = rest_framework.NumberFilter(
-        method='filter_is_favorited'
+        method='object_is_exist_filter'
     )
     is_in_shopping_cart = rest_framework.NumberFilter(
-        method='filter_is_in_shopping_cart'
+        method='object_is_exist_filter'
     )
 
-    def filter_is_favorited(self, queryset, name, value):
+    def object_is_exist_filter(self, queryset, name, value):
+        lookup = '__'.join([name, 'user'])
         if self.request.user.is_anonymous:
-            return Recipe.objects.none()
+            return queryset
         if bool(value):
-            return Recipe.objects.filter(
-                favorite_recipe__user=self.request.user)
-        return queryset
-
-    def filter_is_in_shopping_cart(self, queryset, name, value):
-        if self.request.user.is_anonymous:
-            return Recipe.objects.none()
-        if bool(value):
-            return Recipe.objects.filter(
-                shopping_cart__user=self.request.user)
+            return queryset.filter(**{lookup: self.request.user})
         return queryset
 
     class Meta:

@@ -1,8 +1,10 @@
 from django.contrib import admin
-from .models import CustomUser
+from django.contrib.auth.admin import UserAdmin
+
+from .models import User
 
 
-class CustomUserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(UserAdmin):
     list_display = ('email', 'username', 'first_name',
                     'last_name', 'password',)
     search_fields = ('username',)
@@ -11,4 +13,4 @@ class CustomUserAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(User, CustomUserAdmin)

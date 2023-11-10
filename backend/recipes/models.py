@@ -1,15 +1,15 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
-from users.models import CustomUser
+from colorfield.fields import ColorField
+
+from users.models import User
 
 
 class Tag(models.Model):
     """Модель тегов."""
     name = models.CharField(max_length=50, unique=True)
-    color = models.CharField(
-        max_length=7,
-        unique=True,
-    )
+    color = ColorField(max_length=7, unique=True)
     slug = models.SlugField(
         max_length=124,
         unique=True,
@@ -24,6 +24,14 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=124)
     measurement_unit = models.CharField(max_length=10)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_name_unit'
+            )
+        ]
+
     def __str__(self):
         return self.name
 
@@ -31,7 +39,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     """Модель рецептов."""
     author = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='recipes',
         on_delete=models.CASCADE
     )
@@ -47,9 +55,9 @@ class Recipe(models.Model):
         related_name='recipe_ingredients'
     )
     tags = models.ManyToManyField(Tag, related_name='recipe_tag')
-    cooking_time = models.PositiveIntegerField()
-    is_favorited = models.BooleanField(default=False)
-    is_in_shopping_cart = models.BooleanField(default=False)
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(600)]
+    )
 
     class Meta:
         ordering = ('-id',)
@@ -71,6 +79,14 @@ class IngredientsForRecipe(models.Model):
         on_delete=models.CASCADE)
     amount = models.PositiveIntegerField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe'],
+                name='unique_ingredient_recipe'
+            )
+        ]
+
     def __str__(self):
         return f'{self.recipe}: {self.ingredient}'
 
@@ -78,7 +94,7 @@ class IngredientsForRecipe(models.Model):
 class Favorites(models.Model):
     """Модель для добавления рецепта в избранное."""
     user = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='favorite_recipe',
         on_delete=models.CASCADE
     )
@@ -88,6 +104,14 @@ class Favorites(models.Model):
         on_delete=models.CASCADE
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe'
+            )
+        ]
+
     def __str__(self):
         return f'Рецепт {self.recipe.name} в избранном у {self.user.username}'
 
@@ -95,7 +119,7 @@ class Favorites(models.Model):
 class ShoppingCart(models.Model):
     """Модель для списка покупок."""
     user = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='shopping_cart',
         on_delete=models.CASCADE
     )

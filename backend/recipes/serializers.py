@@ -2,8 +2,9 @@ import base64
 
 from rest_framework import serializers
 from django.core.files.base import ContentFile
+from django.shortcuts import get_object_or_404
 
-from users.models import CustomUser, Subscription
+from users.models import User, Subscription
 from .models import (
     Tag,
     Ingredient,
@@ -20,7 +21,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'email', 'username', 'first_name',
                   'last_name', 'is_subscribed')
 
@@ -38,7 +39,7 @@ class UserShortInfoSerializer(serializers.ModelSerializer):
     рецептов."""
     # Вынесен из модуля users с целью предотвращения циклического импорта.
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'first_name', 'last_name')
 
 
@@ -94,6 +95,12 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
         model = IngredientsForRecipe
         fields = ('id', 'amount')
 
+    def validate_amount(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                'Укажите корректное количество ингредиентов.'
+            )
+
 
 class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для получения информации о рецепте."""
@@ -148,14 +155,33 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         fields = ('id', 'author', 'name', 'tags', 'ingredients',
                   'cooking_time', 'text', 'image')
 
+    def validate_cooking_time(self, value):
+        if value <= 0:
+            raise serializers.ValidationError(
+                'Укажите корректное время приготовления.'
+            )
+
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие
         ингредиентов, изображения и тегов."""
         ingredients = self.initial_data.get('ingredients')
+        ingredients_list = []
         if not ingredients:
             raise serializers.ValidationError(
                 "Нужно добавить ингредиенты в рецепт."
             )
+        for ingredient in ingredients:
+
+            value = get_object_or_404(Ingredient, id=ingredient['id'])
+            if int(ingredient['amount']) < 1:
+                raise serializers.ValidationError(
+                    'Укажите корректное количество ингредиентов.'
+                )
+            if value in ingredients_list:
+                raise serializers.ValidationError(
+                    'Ингредиенты не должны повторяться.'
+                )
+            ingredients_list.append(value)
 
         tags = self.initial_data.get('tags')
         if not tags:

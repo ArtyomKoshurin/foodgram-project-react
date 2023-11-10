@@ -2,7 +2,7 @@ import re
 
 from rest_framework import serializers
 
-from .models import CustomUser, Subscription
+from .models import User, Subscription
 from recipes.serializers import RecipeContextSerializer
 
 from djoser.serializers import UserSerializer
@@ -21,7 +21,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'email', 'username', 'first_name',
                   'last_name', 'password')
 
@@ -37,13 +37,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f'Символы {"".join(error_list)} запрещены!'
             )
-        if CustomUser.objects.filter(username=value).exists():
+        if User.objects.filter(username=value).exists():
             raise serializers.ValidationError(f"Имя {value} уже занято!")
         return value
 
     def validate_email(self, value):
         """Проверяет, что указанный адрес почты не занят."""
-        if CustomUser.objects.filter(email=value).exists():
+        if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
                 "На этот адрес эл. почты уже зарегистрирован аккаунт!"
             )
@@ -55,7 +55,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'email', 'username', 'first_name',
                   'last_name', 'is_subscribed')
 
@@ -72,7 +72,7 @@ class UserShortInfoSerializer(serializers.ModelSerializer):
     """Сериализатор для краткого отображения пользователя на главной странице
     рецептов."""
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'first_name', 'last_name')
 
 
@@ -82,7 +82,7 @@ class TokenSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=254, required=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('password', 'email')
 
 
@@ -99,7 +99,7 @@ class UserRecipesSerializer(UserSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'email', 'username', 'first_name',
                   'last_name', 'is_subscribed', 'recipes',
                   'recipes_count')
