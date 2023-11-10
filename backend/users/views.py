@@ -23,7 +23,7 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = UsersPagination
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'me']:
+        if self.action in ['retrieve', 'me', 'subscribe', 'subscriptions']:
             permission_classes = [permissions.IsAuthenticated]
         # Но ведь в документации на профиле пользователя по GET-запросу стоит
         # запрет на доступ неавторизованным пользователям? И 401 ошибка
@@ -32,9 +32,9 @@ class UserViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'list' or self.request.method == 'GET':
             return UserInfoSerializer
-        elif self.request.method == 'GET' or self.action in [
+        elif self.action in [
             'subscribe',
             'subscriptions'
         ]:
