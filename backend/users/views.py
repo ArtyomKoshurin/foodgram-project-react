@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
-from .pagination import UsersPagination, RecipePagination
+from .pagination import CustomPaginator
 from .models import User, Subscription
 from .serializers import (
     UserRegistrationSerializer,
@@ -20,7 +20,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для регистрации пользователя, просмотра списка пользователей
     и просмотра отдельного пользователя."""
     queryset = User.objects.all()
-    pagination_class = UsersPagination
+    pagination_class = CustomPaginator
 
     def get_permissions(self):
         if self.action in ['retrieve', 'me', 'subscribe', 'subscriptions']:
@@ -99,7 +99,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False,
             url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
-            pagination_class=RecipePagination)
+            pagination_class=CustomPaginator)
     def subscriptions(self, request):
         authors = User.objects.filter(
             recipe_author__user=request.user).prefetch_related('recipes')

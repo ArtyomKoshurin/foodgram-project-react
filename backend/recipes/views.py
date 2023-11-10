@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, permissions
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -17,6 +16,7 @@ from .serializers import (
 )
 from .permissions import IsAdminAuthorOrReadOnly
 from .filters import IngredientFilter, RecipeFilter
+from users.pagination import CustomPaginator
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -41,7 +41,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для просмотра списка рецептов, конкретного рецепта,
     создания рецепта"""
     queryset = Recipe.objects.all()
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
