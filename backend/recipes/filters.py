@@ -44,7 +44,7 @@ class RecipeFilter(rest_framework.FilterSet):
             return Recipe.objects.none()
         if bool(value):
             return queryset.filter(
-               shopping_cart__user=self.request.user)
+                shopping_cart__user=self.request.user)
         return queryset
 
     class Meta:
