@@ -156,6 +156,13 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         fields = ('id', 'author', 'name', 'tags', 'ingredients',
                   'cooking_time', 'text', 'image')
 
+    def validate_name(self, value):
+        if len(value) > 200:
+            raise serializers.ValidationError(
+                'имя рецепта не должно превышать 200 символов.'
+            )
+        return value
+
     def validate_cooking_time(self, value):
         if value <= 0:
             raise serializers.ValidationError(
@@ -190,6 +197,15 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Необходимо указать хотя бы один тег."
             )
+        tags_list = []
+        for tag in tags:
+
+            value = get_object_or_404(Tag, id=tag['id'])
+            if value in tags_list:
+                raise serializers.ValidationError(
+                    'Теги не должны повторяться.'
+                )
+            tags_list.append(value)
 
         image = self.initial_data.get('image')
         if not image:

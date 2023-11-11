@@ -23,7 +23,7 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPaginator
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'me', 'subscribe', 'subscriptions']:
+        if self.action in ['me', 'subscribe', 'subscriptions']:
             permission_classes = [permissions.IsAuthenticated]
         # Но ведь в документации на профиле пользователя по GET-запросу стоит
         # запрет на доступ неавторизованным пользователям? И 401 ошибка
@@ -105,16 +105,11 @@ class UserViewSet(viewsets.ModelViewSet):
             recipe_author__user=request.user).prefetch_related('recipes')
         page = self.paginate_queryset(authors)
 
-        if page:
-            serializer = UserRecipesSerializer(
-                page, many=True,
-                context={'request': request})
+        serializer = UserRecipesSerializer(
+            page, many=True,
+            context={'request': request})
 
-            return self.get_paginated_response(serializer.data)
-        serializer = UserRecipesSerializer(authors, many=True,
-                                           context={'request': request})
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
 
 class CustomAuthToken(ObtainAuthToken):

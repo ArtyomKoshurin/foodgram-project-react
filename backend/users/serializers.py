@@ -2,6 +2,7 @@ import re
 
 from rest_framework import serializers
 
+from recipes.models import Recipe
 from .models import User, Subscription
 from recipes.serializers import RecipeContextSerializer
 
@@ -95,7 +96,7 @@ class NewPasswordSerializer(serializers.Serializer):
 class UserRecipesSerializer(UserSerializer):
     """Сериализатор для просмотра профиля пользователя с его рецептами."""
     is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipeContextSerializer(many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -114,3 +115,16 @@ class UserRecipesSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes_limit = request.GET.get('recipes_limit')
+        recipes = Recipe.objects.filter(author=obj.id)
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+        serializer = RecipeContextSerializer(
+            recipes,
+            many=True,
+            read_only=True
+        )
+        return serializer.data

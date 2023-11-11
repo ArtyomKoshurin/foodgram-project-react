@@ -46,7 +46,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_permissions(self):
-        if self.request.method == 'PATCH' or self.action == 'destroy':
+        if self.request.method == 'PATCH' or self.request.method == 'DELETE':
             permission_classes = [IsAdminAuthorOrReadOnly]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
@@ -70,7 +70,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             url_path=r'(?P<pk>\d+)/favorite',
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, **kwargs):
-        recipe = Recipe.objects.get(id=kwargs['pk'])
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
         if request.method == 'POST':
             if Favorites.objects.filter(
@@ -85,7 +85,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user=request.user, recipe=recipe).exists():
             return Response('Этот рецепт еще не в списке избранного.',
                             status=status.HTTP_400_BAD_REQUEST)
-        favorite = Favorites.objects.get(
+        favorite = get_object_or_404(
+            Favorites,
             user=request.user, recipe=recipe)
         favorite.delete()
         return Response(data=self.get_serializer(recipe).data,
