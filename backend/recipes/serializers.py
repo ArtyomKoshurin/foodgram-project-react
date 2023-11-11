@@ -100,6 +100,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Укажите корректное количество ингредиентов.'
             )
+        return value
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
@@ -158,8 +159,9 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
     def validate_cooking_time(self, value):
         if value <= 0:
             raise serializers.ValidationError(
-                'Укажите корректное время приготовления.'
+                'Введите корректное время приготовления.'
             )
+        return value
 
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие

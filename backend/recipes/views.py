@@ -55,9 +55,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action in ['list', 'favorite', 'shopping_cart']:
+        if self.action in ['favorite', 'shopping_cart']:
             return RecipeListSerializer
-        elif self.action == 'retrieve':
+        elif self.action in ['list', 'retrieve']:
             return RecipeGetSerializer
         elif self.action == 'download_shopping_cart':
             return None
