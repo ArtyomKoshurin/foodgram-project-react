@@ -1,2 +1,2 @@
-.media
-d.sqlite3
+media/
+db.sqlite3
