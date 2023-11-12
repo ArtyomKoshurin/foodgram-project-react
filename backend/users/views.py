@@ -88,7 +88,7 @@ class UserViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED)
 
         subscription = Subscription.objects.filter(
-                user=request.user, author=author).first()
+            user=request.user, author=author).first()
         if not subscription:
             return Response('Вы не подписаны на этого пользователя.',
                             status=status.HTTP_400_BAD_REQUEST)

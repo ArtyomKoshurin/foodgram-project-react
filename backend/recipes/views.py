@@ -82,7 +82,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED)
 
         favorite = Favorites.objects.filter(
-                user=request.user, recipe=recipe).first()
+            user=request.user, recipe=recipe).first()
         if not favorite:
             return Response('Этот рецепт еще не в списке избранного.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -106,7 +106,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED)
 
         shopping_cart = ShoppingCart.objects.filter(
-                user=request.user, recipe=recipe).first()
+            user=request.user, recipe=recipe).first()
         if not shopping_cart:
             return Response(
                 'Вы не добавляли этот рецепт в список покупок.',
