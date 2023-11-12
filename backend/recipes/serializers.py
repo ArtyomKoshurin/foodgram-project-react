@@ -2,7 +2,6 @@ import base64
 
 from rest_framework import serializers
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
 
 from users.models import User, Subscription
 from .models import (
@@ -181,7 +180,11 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             )
         for ingredient in ingredients:
 
-            value = get_object_or_404(Ingredient, id=ingredient['id'])
+            value = Ingredient.objects.filter(id=ingredient['id'])
+            if not value.exists():
+                raise serializers.ValidationError(
+                    'Такого ингредиента не существует.'
+                )
             if int(ingredient['amount']) < 1:
                 raise serializers.ValidationError(
                     'Укажите корректное количество ингредиентов.'
@@ -200,12 +203,15 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         tags_list = []
         for tag in tags:
 
-            value = get_object_or_404(Tag, id=tag['id'])
-            if value in tags_list:
+            if not Tag.objects.filter(id=tag).exists():
+                raise serializers.ValidationError(
+                    'Такого тега не существует.'
+                )
+            if tag in tags_list:
                 raise serializers.ValidationError(
                     'Теги не должны повторяться.'
                 )
-            tags_list.append(value)
+            tags_list.append(tag)
 
         image = self.initial_data.get('image')
         if not image:
@@ -221,11 +227,8 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         recipe.tags.set(tags)
 
         for ingredient in ingredients:
-            current_ingredient = get_object_or_404(
-                Ingredient, pk=ingredient.get('id')
-            )
             IngredientsForRecipe.objects.create(
-                ingredient=current_ingredient,
+                ingredient_id=ingredient.get('id'),
                 recipe=recipe,
                 amount=ingredient.get('amount')
             )

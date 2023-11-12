@@ -1,6 +1,7 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets, permissions
+from rest_framework.generics import get_object_or_404
 from rest_framework.decorators import action
+from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -25,8 +26,6 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['me', 'subscribe', 'subscriptions']:
             permission_classes = [permissions.IsAuthenticated]
-        # Но ведь в документации на профиле пользователя по GET-запросу стоит
-        # запрет на доступ неавторизованным пользователям? И 401 ошибка
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
@@ -54,11 +53,13 @@ class UserViewSet(viewsets.ModelViewSet):
     def change_password(self, request):
         """Метод, позволяющий сменить пароль."""
         user = request.user
-        serializer = NewPasswordSerializer(data=request.data)
+        serializer = NewPasswordSerializer(data=request.data,
+                                           context={'request': request})
 
         serializer.is_valid(raise_exception=True)
-        if serializer.data['current_password'] == request.user.password:
-            user.password = serializer.data['new_password']
+        if check_password(serializer.data['current_password'],
+                          request.user.password) is True:
+            user.password = make_password(serializer.data['new_password'])
             user.save(update_fields=["password"])
             return Response('Пароль успешно изменен.',
                             status=status.HTTP_204_NO_CONTENT)
@@ -86,12 +87,11 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
-        if not Subscription.objects.filter(
-                user=request.user, author=author).exists():
+        subscription = Subscription.objects.filter(
+                user=request.user, author=author).first()
+        if not subscription:
             return Response('Вы не подписаны на этого пользователя.',
                             status=status.HTTP_400_BAD_REQUEST)
-        subscription = Subscription.objects.get(
-            user=request.user, author=author)
         subscription.delete()
         return Response(serializer.data,
                         status=status.HTTP_204_NO_CONTENT)
@@ -122,6 +122,10 @@ class CustomAuthToken(ObtainAuthToken):
                                      context={'request': request})
 
         serializer.is_valid(raise_exception=True)
+        if check_password(serializer.data['password'],
+                          request.user.password) is False:
+            return Response('Неправильный пароль.',
+                            status=status.HTTP_400_BAD_REQUEST)
         user = get_object_or_404(
             User,
             email=serializer.data.get('email')

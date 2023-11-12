@@ -36,7 +36,6 @@ SECRET_KEY='Из настроек Django-settings'
 3. В папке infra выполните команду `docker-compose up`
 4. Выполните миграции и загрузите данные ингредиентовЖ
 ```
-docker compose exec backend python manage.py makemigrations
 docker compose exec backend python manage.py migrate
 docker compose exec backend python manage.py dataloader
 ```
@@ -75,7 +74,6 @@ server {
 5. В директории проекта запустите сборщик контейнеров `sudo docker compose -f docker-compose.production.yml up -d`
 6. Выполните установку и применение миграций и загрузку данных ингредиентов:
 ```
-sudo docker compose -f docker-compose.production.yml exec backend python manage.py makemigrations
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py dataloader
 ```

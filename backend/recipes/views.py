@@ -1,8 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.db.models import F
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, permissions
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -11,8 +11,8 @@ from .serializers import (
     TagSerializer,
     IngredientsSerializer,
     RecipeCreationSerializer,
-    RecipeListSerializer,
-    RecipeGetSerializer
+    RecipeGetSerializer,
+    RecipeContextSerializer
 )
 from .permissions import IsAdminAuthorOrReadOnly
 from .filters import IngredientFilter, RecipeFilter
@@ -56,7 +56,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['favorite', 'shopping_cart']:
-            return RecipeListSerializer
+            return RecipeContextSerializer
         elif self.action in ['list', 'retrieve']:
             return RecipeGetSerializer
         elif self.action == 'download_shopping_cart':
@@ -81,13 +81,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(data=self.get_serializer(recipe).data,
                             status=status.HTTP_201_CREATED)
 
-        if not Favorites.objects.filter(
-                user=request.user, recipe=recipe).exists():
+        favorite = Favorites.objects.filter(
+                user=request.user, recipe=recipe).first()
+        if not favorite:
             return Response('Этот рецепт еще не в списке избранного.',
                             status=status.HTTP_400_BAD_REQUEST)
-        favorite = get_object_or_404(
-            Favorites,
-            user=request.user, recipe=recipe)
         favorite.delete()
         return Response(data=self.get_serializer(recipe).data,
                         status=status.HTTP_204_NO_CONTENT)
@@ -107,13 +105,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(data=self.get_serializer(recipe).data,
                             status=status.HTTP_201_CREATED)
 
-        if not ShoppingCart.objects.filter(
-                user=request.user, recipe=recipe).exists():
+        shopping_cart = ShoppingCart.objects.filter(
+                user=request.user, recipe=recipe).first()
+        if not shopping_cart:
             return Response(
                 'Вы не добавляли этот рецепт в список покупок.',
                 status=status.HTTP_400_BAD_REQUEST)
-        shopping_cart = ShoppingCart.objects.get(
-            user=request.user, recipe=recipe)
         shopping_cart.delete()
         return Response(data=self.get_serializer(recipe).data,
                         status=status.HTTP_204_NO_CONTENT)
