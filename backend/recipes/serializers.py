@@ -183,7 +183,7 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             value = Ingredient.objects.filter(id=ingredient['id'])
             if not value.exists():
                 raise serializers.ValidationError(
-                    'Такого ингредиента не существует.'
+                    {'Ошибка': 'Такого ингредиента не существует.'}
                 )
             if int(ingredient['amount']) < 1:
                 raise serializers.ValidationError(
@@ -203,10 +203,6 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
         tags_list = []
         for tag in tags:
 
-            if not Tag.objects.filter(id=tag).exists():
-                raise serializers.ValidationError(
-                    'Такого тега не существует.'
-                )
             if tag in tags_list:
                 raise serializers.ValidationError(
                     'Теги не должны повторяться.'
