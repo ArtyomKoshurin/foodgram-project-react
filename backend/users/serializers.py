@@ -99,7 +99,7 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
         if self.user and self.user.is_active:
             return attrs
         raise serializers.ValidationError(
-                    {'Ошибка': 'Неправильный адрес эл. почты.'}
+            {'Ошибка': 'Неправильный адрес эл. почты.'}
         )
 
 
