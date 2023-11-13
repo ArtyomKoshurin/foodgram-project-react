@@ -95,7 +95,7 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/col
 
 # Технологии
 Python 3.9.10
-Django 2.2.19
+Django 4.2.5
 Docker 24.0.5
 
 # Автор:

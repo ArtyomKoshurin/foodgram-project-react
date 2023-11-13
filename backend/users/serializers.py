@@ -7,7 +7,9 @@ from recipes.models import Recipe
 from .models import User, Subscription
 from recipes.serializers import RecipeContextSerializer
 
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer, TokenCreateSerializer
+from djoser.conf import settings
+from django.contrib.auth import authenticate
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -63,6 +65,44 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class CustomTokenCreateSerializer(TokenCreateSerializer):
+    # Написал такой сериализатор, потому что в дефолтном непонятно, из-за
+    # какого поля ошибка в случае неправильного пароля или эл. почты.
+    password = serializers.CharField(required=False,
+                                     style={"input_type": "password"})
+
+    default_error_messages = {
+        "invalid_credentials":
+        settings.CONSTANTS.messages.INVALID_CREDENTIALS_ERROR,
+        "inactive_account":
+        settings.CONSTANTS.messages.INACTIVE_ACCOUNT_ERROR,
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = None
+        self.fields[settings.LOGIN_FIELD] = serializers.CharField(
+            required=False)
+
+    def validate(self, attrs):
+        password = attrs.get("password")
+        params = {settings.LOGIN_FIELD: attrs.get(settings.LOGIN_FIELD)}
+        self.user = authenticate(
+            request=self.context.get("request"), **params, password=password
+        )
+        if not self.user:
+            self.user = User.objects.filter(**params).first()
+            if self.user and not self.user.check_password(password):
+                raise serializers.ValidationError(
+                    {'Ошибка': 'Неправильный пароль.'}
+                )
+        if self.user and self.user.is_active:
+            return attrs
+        raise serializers.ValidationError(
+                    {'Ошибка': 'Неправильный адрес эл. почты.'}
+        )
+
+
 class UserInfoSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра профилей пользователей."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
@@ -87,16 +127,6 @@ class UserShortInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name')
-
-
-class TokenSerializer(serializers.ModelSerializer):
-    """Сериализатор для получения токена."""
-    password = serializers.CharField(max_length=150, required=True)
-    email = serializers.EmailField(max_length=254, required=True)
-
-    class Meta:
-        model = User
-        fields = ('password', 'email')
 
 
 class NewPasswordSerializer(serializers.Serializer):

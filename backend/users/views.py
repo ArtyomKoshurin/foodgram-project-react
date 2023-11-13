@@ -3,15 +3,12 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.response import Response
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 
 from .pagination import CustomPaginator
 from .models import User, Subscription
 from .serializers import (
     UserRegistrationSerializer,
     UserInfoSerializer,
-    TokenSerializer,
     NewPasswordSerializer,
     UserRecipesSerializer,
 )
@@ -58,7 +55,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer.is_valid(raise_exception=True)
         if check_password(serializer.data['current_password'],
-                          request.user.password) is True:
+                          request.user.password):
             user.password = make_password(serializer.data['new_password'])
             user.save(update_fields=["password"])
             return Response('Пароль успешно изменен.',
@@ -110,27 +107,3 @@ class UserViewSet(viewsets.ModelViewSet):
             context={'request': request})
 
         return self.get_paginated_response(serializer.data)
-
-
-class CustomAuthToken(ObtainAuthToken):
-    """Кастомный вью-класс для получения токена по username-email."""
-    permission_classes = (permissions.AllowAny,)
-    pagination_class = None
-
-    def post(self, request, *args, **kwargs):
-        serializer = TokenSerializer(data=request.data,
-                                     context={'request': request})
-
-        serializer.is_valid(raise_exception=True)
-        if check_password(serializer.data['password'],
-                          request.user.password) is False:
-            return Response('Неправильный пароль.',
-                            status=status.HTTP_400_BAD_REQUEST)
-        user = get_object_or_404(
-            User,
-            email=serializer.data.get('email')
-        )
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'auth_token': token.key,
-        })
