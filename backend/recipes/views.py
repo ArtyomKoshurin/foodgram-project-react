@@ -2,9 +2,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.db.models import F
 from rest_framework import viewsets, status, permissions
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 
 from .models import Tag, Ingredient, Recipe, Favorites, ShoppingCart
 from .serializers import (
@@ -50,6 +50,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdminAuthorOrReadOnly]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
+        elif self.action == 'favorite' and self.request.method == 'DELETE':
+            permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
