@@ -66,8 +66,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenCreateSerializer(TokenCreateSerializer):
-    # Написал такой сериализатор, потому что в дефолтном непонятно, из-за
-    # какого поля ошибка в случае неправильного пароля или эл. почты.
     password = serializers.CharField(required=False,
                                      style={"input_type": "password"})
 

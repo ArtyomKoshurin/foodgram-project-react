@@ -172,16 +172,16 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие
         ингредиентов, изображения и тегов."""
-        ingredients = self.initial_data.get('ingredients')
+        data = self.initial_data.get('ingredients')
         ingredients_list = []
-        if not ingredients:
+        if not data:
             raise serializers.ValidationError(
                 "Нужно добавить ингредиенты в рецепт."
             )
-        for ingredient in ingredients:
+        for ingredient in data:
 
-            value = Ingredient.objects.filter(id=ingredient['id'])
-            if not value.exists():
+            ingredient_id = ingredient.get('id')
+            if not Ingredient.objects.filter(id=ingredient_id).exists():
                 raise serializers.ValidationError(
                     {'Ошибка': 'Такого ингредиента не существует.'}
                 )
@@ -189,31 +189,32 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Укажите корректное количество ингредиентов.'
                 )
-            if value in ingredients_list:
+            if ingredient_id in ingredients_list:
                 raise serializers.ValidationError(
-                    'Ингредиенты не должны повторяться.'
+                    {'Ошибка': 'Ингредиенты не должны повторяться.'}
                 )
-            ingredients_list.append(value)
+            ingredients_list.append(ingredient_id)
 
-        tags = self.initial_data.get('tags')
-        if not tags:
+        data = self.initial_data.get('tags')
+        if not data:
             raise serializers.ValidationError(
                 "Необходимо указать хотя бы один тег."
             )
         tags_list = []
-        for tag in tags:
+        for tag in data:
 
             if tag in tags_list:
                 raise serializers.ValidationError(
-                    'Теги не должны повторяться.'
+                    {'Ошибка': 'Теги не должны повторяться.'}
                 )
             tags_list.append(tag)
 
-        image = self.initial_data.get('image')
-        if not image:
+        data = self.initial_data.get('image')
+        if not data:
             raise serializers.ValidationError(
                 "К рецепту необходимо добавить фото."
             )
+
         return data
 
     def create(self, validated_data):
