@@ -7,6 +7,8 @@
 
 API: https://myfoodgramm.hopto.org/api/docs/
 
+Логин/пароль от админ-зоны: ArtyomKoshurin/foodpass
+
 # Ключевые ресурсы API Foodgram
 **AUTH**: аутентификация.
 
