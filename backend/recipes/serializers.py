@@ -172,16 +172,13 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие
         ингредиентов, изображения и тегов."""
-        # Если пытаюсь назвать перменную data - не создается рецепт из-за
-        # того, что во вью в perform_create у меня определен метод
-        # записи автора
-        ingredients_data = self.initial_data.get('ingredients')
+        ingredients = data.get('ingredient_for_recipe')
         ingredients_list = []
-        if not ingredients_data:
+        if not ingredients:
             raise serializers.ValidationError(
                 "Нужно добавить ингредиенты в рецепт."
             )
-        for ingredient in ingredients_data:
+        for ingredient in ingredients:
 
             ingredient_id = ingredient.get('id')
             if not Ingredient.objects.filter(id=ingredient_id).exists():
@@ -198,13 +195,13 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
                 )
             ingredients_list.append(ingredient_id)
 
-        tags_data = self.initial_data.get('tags')
-        if not tags_data:
+        tags = data.get('tags')
+        if not tags:
             raise serializers.ValidationError(
                 "Необходимо указать хотя бы один тег."
             )
         tags_list = []
-        for tag in tags_data:
+        for tag in tags:
 
             if tag in tags_list:
                 raise serializers.ValidationError(
@@ -212,8 +209,8 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
                 )
             tags_list.append(tag)
 
-        image_data = self.initial_data.get('image')
-        if not image_data:
+        image = data.get('image')
+        if not image:
             raise serializers.ValidationError(
                 "К рецепту необходимо добавить фото."
             )
