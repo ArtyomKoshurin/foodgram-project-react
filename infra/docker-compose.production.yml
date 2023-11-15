@@ -14,7 +14,7 @@ services:
       - foodgram_data:/var/lib/postgresql/data
   
   backend:
-    image: artyomkoshurin/foodgram_backend
+    image: artyomkoshurin/foodgram_backend_final
     env_file: .env
     volumes:
       - foodgram_static:/app/static/
@@ -23,7 +23,7 @@ services:
       - foodgram_db
 
   frontend:
-    image: artyomkoshurin/foodgram_frontend
+    image: artyomkoshurin/foodgram_frontend_final
     volumes:
       - ./frontend/:/app/result_build/
 
