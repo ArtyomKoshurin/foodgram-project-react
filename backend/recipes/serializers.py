@@ -169,6 +169,13 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                {'Ошибка': 'К рецепту необходимо добавить фото.'}
+            )
+        return value
+
     def validate(self, data):
         """Валидация создания рецепта - проверяет наличие
         ингредиентов, изображения и тегов."""
@@ -209,12 +216,6 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
                 )
             tags_list.append(tag)
 
-        image = data.get('image')
-        if not image:
-            raise serializers.ValidationError(
-                "К рецепту необходимо добавить фото."
-            )
-
         return data
 
     def create(self, validated_data):
@@ -242,7 +243,6 @@ class RecipeCreationSerializer(serializers.ModelSerializer):
             'text',
             instance.text
         )
-        instance.image = validated_data.get('image', instance.image)
         ingredients = validated_data.pop('ingredient_for_recipe')
         tags = validated_data.pop('tags')
         instance.tags.clear()
